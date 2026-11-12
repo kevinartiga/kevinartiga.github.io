@@ -38,9 +38,9 @@
 
 .intro .intro-bio{font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#47545b;max-width:760px;margin:0 0 22px}
 .mobile-field-hint{display:none}
-@media(max-width:640px){.intro .intro-bio{font-size:14px;line-height:1.7}.mobile-field-hint{display:block}.field-tooltip.touch-pinned{pointer-events:auto;cursor:pointer;z-index:12;max-width:min(270px,calc(100% - 18px))}.field-atlas .canvas-wrap{touch-action:pan-y}}
+@media(max-width:640px){.intro .intro-bio{font-size:14px;line-height:1.7}.mobile-field-hint{display:block}.field-atlas .field-tooltip.touch-pinned{pointer-events:auto;cursor:pointer;z-index:12;max-width:min(270px,calc(100% - 18px))}.field-atlas .canvas-wrap{touch-action:pan-y}}
 .field-tooltip.touch-pinned:after{content:'Tap card to open section';display:block;font:10px/1.4 Arial,sans-serif;color:#647782;margin-top:6px}
-@media(min-width:641px){.field-tooltip.touch-pinned{pointer-events:auto}}
+@media(min-width:641px){.field-atlas .field-tooltip.touch-pinned{pointer-events:auto}}
 </style><style>
 /* Education — one independent interactive ring per degree, person or experience */
 .education-figure{margin:2px 0 46px;width:100%;position:relative}
@@ -82,7 +82,7 @@
 .professional-dot-hit:focus-visible,.professional-stream-hit:focus-visible{outline:none;stroke:#334e61;stroke-width:3}
 #industry-professional-experience .record,#academic-appointments-teaching .record{scroll-margin-top:45px}
 #industry-professional-experience .record:target,#academic-appointments-teaching .record:target{border-left:2px solid #66849a;padding-left:12px}
-@media(max-width:640px){.professional-stage{height:310px}.professional-figure{margin:8px 0 24px}.professional-tip{min-width:145px;max-width:205px}}
+@media(max-width:640px){.professional-tip.show{pointer-events:auto;cursor:pointer}.professional-stage{height:310px}.professional-figure{margin:8px 0 24px}.professional-tip{min-width:145px;max-width:205px}}
 @media(prefers-reduced-motion:reduce){.professional-stream,.professional-dot,.professional-tip{transition:none!important}}
 @media print{.professional-figure{display:none!important}}
 </style>
@@ -212,7 +212,7 @@ function locate(px,py,reach=15){let best=null,dist=reach*reach;for(let path of h
 function showTip(path,px,py){const entries=path.section.entries;let item=entries[mod(path.j*3+Math.floor((path.progress||0)*entries.length),entries.length)];selected=item;tooltip.innerHTML='<span class="tip-line" style="background:hsl('+path.hue+',66%,52%)"></span><strong>'+item.title+'</strong><small>'+item.detail+'</small>';const tw=tooltip.offsetWidth||260,th=tooltip.offsetHeight||90;tooltip.style.left=Math.max(5,Math.min(w-tw-5,px+14))+'px';tooltip.style.top=Math.max(5,Math.min(h-th-5,py+14))+'px';tooltip.classList.add('show');canvas.style.cursor='pointer'}
 canvas.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||touchPinned)return;let r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;let path=locate(x,y);if(path)showTip(path,x,y);else hideTip()});canvas.addEventListener('pointerleave',()=>hideTip());
 canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')touchStart={x:e.clientX,y:e.clientY}});
-canvas.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')return;if(touchStart&&Math.hypot(e.clientX-touchStart.x,e.clientY-touchStart.y)>12){touchStart=null;return}touchStart=null;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,path=locate(x,y,32);if(!path){touchPinned=false;touchKey=null;hideTip(true);return}const key=path.j+'-'+Math.floor((path.progress||0)*path.section.entries.length);if(touchPinned&&touchKey===key&&selected){document.getElementById(selected.id)?.scrollIntoView({behavior:reduced?'auto':'smooth'});return}showTip(path,x,y);touchPinned=true;touchKey=key;tooltip.classList.add('touch-pinned')});
+canvas.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')return;if(touchStart&&Math.hypot(e.clientX-touchStart.x,e.clientY-touchStart.y)>12){touchStart=null;return}touchStart=null;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,path=locate(x,y,48);if(!path){touchPinned=false;touchKey=null;hideTip(true);return}const key=path.j+'-'+Math.floor((path.progress||0)*path.section.entries.length);if(touchPinned&&touchKey===key&&selected){document.getElementById(selected.id)?.scrollIntoView({behavior:reduced?'auto':'smooth'});return}showTip(path,x,y);touchPinned=true;touchKey=key;tooltip.classList.add('touch-pinned')});
 tooltip.addEventListener('click',()=>{if(touchPinned&&selected)document.getElementById(selected.id)?.scrollIntoView({behavior:reduced?'auto':'smooth'})});
 document.addEventListener('pointerdown',e=>{if(touchPinned&&!e.target.closest('.field-atlas')){touchPinned=false;touchKey=null;hideTip(true)}});
 canvas.addEventListener('click',e=>{if(e.detail===0||!matchMedia('(pointer:coarse)').matches){if(selected)document.getElementById(selected.id)?.scrollIntoView({behavior:reduced?'auto':'smooth'})}});
@@ -333,7 +333,7 @@ if(event)position(event);else{const r=target.getBoundingClientRect(),box=stage.g
 function place(x,y){const w=stage.clientWidth;if(matchMedia('(pointer:coarse)').matches){const tw=tip.offsetWidth||190,th=tip.offsetHeight||80;tip.style.left=Math.max(tw/2+6,Math.min(w-tw/2-6,x))+'px';tip.style.top=Math.max(th+14,Math.min(stage.clientHeight-8,y))+'px'}else{tip.style.left=Math.max(108,Math.min(w-108,x))+'px';tip.style.top=Math.max(88,y)+'px'}}
 function position(e){const r=stage.getBoundingClientRect();place(e.clientX-r.left,e.clientY-r.top)}
 function hide(){if(matchMedia('(pointer:coarse)').matches&&touchJob)return;active=null;tip.classList.remove('show');lineElements.forEach(({p})=>p.classList.remove('is-dim','is-active'));dotElements.forEach(({circle})=>circle.classList.remove('is-dim','is-active'))}
-document.addEventListener('pointerdown',e=>{if(touchJob&&!stage.contains(e.target)){touchJob=null;hide()}});
+tip.addEventListener('click',()=>{if(touchJob&&active&&active.type==='job')navigate(active.data)});document.addEventListener('pointerdown',e=>{if(touchJob&&!stage.contains(e.target)){touchJob=null;hide()}});
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
 const start=performance.now();
 function animate(t){const time=(t-start)/1000;lineElements.forEach(({p},i)=>{p.style.opacity=active?(p.classList.contains('is-active')?'1':'.12'):String(.72+.12*Math.sin(time*.7+i*.9))});requestAnimationFrame(animate)}
@@ -389,6 +389,6 @@ function show(el){const idx=Number(el.dataset.index),d=records[idx];points.forEa
  x=Math.max(0,Math.min(x,f.width-w));y=Math.max(0,Math.min(y,fig.querySelector('svg').getBoundingClientRect().height-h));
  tip.style.left=x+'px';tip.style.top=y+'px';}
 function hide(){tip.classList.remove('show');points.forEach(p=>p.classList.remove('is-selected'));active=null}
-points.forEach(p=>{p.addEventListener('mouseenter',e=>{if(!matchMedia('(pointer:coarse)').matches)show(p)});p.addEventListener('mouseleave',()=>{if(!matchMedia('(pointer:coarse)').matches&&!p.matches(':focus'))hide()});p.addEventListener('focus',()=>{if(!matchMedia('(pointer:coarse)').matches)show(p)});p.addEventListener('blur',()=>{if(!matchMedia('(pointer:coarse)').matches)hide()});p.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();show(p)});p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(p)}else if(e.key==='Escape')hide()})});
+points.forEach(p=>{p.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'){e.stopPropagation();show(p)}});p.addEventListener('mouseenter',e=>{if(!matchMedia('(pointer:coarse)').matches)show(p)});p.addEventListener('mouseleave',()=>{if(!matchMedia('(pointer:coarse)').matches&&!p.matches(':focus'))hide()});p.addEventListener('focus',()=>{if(!matchMedia('(pointer:coarse)').matches)show(p)});p.addEventListener('blur',()=>{if(!matchMedia('(pointer:coarse)').matches)hide()});p.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();show(p)});p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(p)}else if(e.key==='Escape')hide()})});
 document.addEventListener('pointerdown',e=>{if(!fig.contains(e.target))hide()});window.addEventListener('resize',hide);
 })();</script></body></html>
